@@ -85,7 +85,7 @@ void MainComponent::paint(juce::Graphics& g)
 
 void MainComponent::resized()
 {
-    const auto bounds = getLocalBounds().reduced(18);
+    auto bounds = getLocalBounds().reduced(18);
     auto top = bounds.removeFromTop(120);
 
     loadSamplesButton.setBounds(top.removeFromLeft(130).reduced(8));
@@ -138,17 +138,31 @@ void MainComponent::updateScale()
 
 void MainComponent::openSampleFolder()
 {
-    juce::FileChooser chooser("Select scale sample folder", juce::File::getSpecialLocation(juce::File::userHomeDirectory));
-    if (! chooser.browseForDirectory())
-        return;
+    auto chooser = std::make_shared<juce::FileChooser>(
+        "Select scale sample folder",
+        juce::File::getSpecialLocation(juce::File::userHomeDirectory)
+    );
 
-    juce::String errorMessage;
-    if (! engine.loadScale(chooser.getResult(), errorMessage))
-    {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                               "Sample loading failed",
-                                               errorMessage);
-    }
+    chooser->launchAsync(
+        juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories,
+        [this, chooser](const juce::FileChooser& fc)
+        {
+            auto folder = fc.getResult();
+
+            if (folder == juce::File{})
+                return;
+
+            juce::String errorMessage;
+            if (! engine.loadScale(folder, errorMessage))
+            {
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::AlertWindow::WarningIcon,
+                    "Sample loading failed",
+                    errorMessage
+                );
+            }
+        }
+    );
 }
 
 void MainComponent::refreshMidiDevices()

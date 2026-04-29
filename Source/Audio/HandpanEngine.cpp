@@ -74,5 +74,5 @@ void HandpanEngine::setReverbAmount(const float amount)
 void HandpanEngine::setTone(const float normalizedTone)
 {
     const auto cutoff = juce::jmap(normalizedTone, 0.0f, 1.0f, 900.0f, 12000.0f);
-    *toneFilter.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(currentSampleRate, cutoff, 0.707f);
+    toneFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(currentSampleRate, cutoff, 0.707f);
 }
